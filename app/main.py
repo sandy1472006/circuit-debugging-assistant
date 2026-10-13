@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
-from app.config import APP_NAME, APP_VERSION, APP_DESCRIPTION, UPLOAD_DIR, SAMPLE_DIR, REPORT_DIR, REFERENCE_DIR
+from app.config import APP_NAME, APP_VERSION, APP_DESCRIPTION, UPLOAD_DIR, SAMPLE_DIR, REPORT_DIR, REFERENCE_DIR, DATA_DIR
 from app.api.analysis import router as analysis_router
 from app.api.reports import router as reports_router
 from app.api.benchmarks import router as benchmarks_router
@@ -41,6 +41,11 @@ app.include_router(history_router)
 # Mount static asset directories
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+app.mount("/css", StaticFiles(directory=str(STATIC_DIR / "css")), name="css")
+app.mount("/js", StaticFiles(directory=str(STATIC_DIR / "js")), name="js")
+if (STATIC_DIR / "images").exists():
+    app.mount("/images", StaticFiles(directory=str(STATIC_DIR / "images")), name="images")
+app.mount("/data", StaticFiles(directory=str(DATA_DIR)), name="data")
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 app.mount("/samples", StaticFiles(directory=str(SAMPLE_DIR)), name="samples")
 app.mount("/references", StaticFiles(directory=str(REFERENCE_DIR)), name="references")

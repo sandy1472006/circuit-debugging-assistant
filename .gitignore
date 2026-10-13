@@ -17,6 +17,7 @@ ENV/
 data/uploads/*
 !data/uploads/.gitkeep
 data/reports/*.pdf
+!data/reports/*_Diagnostic_Report.pdf
 data/reports/plots/*
 !data/reports/plots/.gitkeep
 *.db
