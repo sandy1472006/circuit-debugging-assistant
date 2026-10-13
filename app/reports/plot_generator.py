@@ -743,3 +743,137 @@ def generate_comparison_simulation_plots(
     plt.close(fig1)
     plt.close(fig2)
 
+
+def generate_single_combined_simulation_plot(
+    circuit_type: str,
+    params: Dict[str, float],
+    is_faulty: bool,
+    out_path: Path
+):
+    """
+    Generates the exact single combined simulation plot matching Section 6 in Image 2:
+    Both Expected curve and Uploaded Faulty curve plotted on the same axes with cutoff annotation.
+    """
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig, ax = plt.subplots(figsize=(6.2, 2.5), dpi=260)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("#FCFCFD")
+
+    if circuit_type == "rc_low_pass":
+        f = np.logspace(0, 5, 300)
+        r = params.get("R", 10000.0)
+        c = params.get("C", 100e-9)
+        fc = 1.0 / (2.0 * np.pi * r * c)
+        h = 1.0 / (1.0 + 1j * 2 * np.pi * f * r * c)
+        mag_nom = 20 * np.log10(np.abs(h))
+        mag_fault = np.zeros_like(f) if is_faulty else mag_nom
+
+        ax.semilogx(f, mag_nom, color="#2563EB", lw=1.8, label="Expected (RC Low-Pass)")
+        if is_faulty:
+            ax.semilogx(f, mag_fault, color="#DC2626", lw=1.5, ls="--", label="Uploaded Faulty Circuit (Capacitor Open)")
+
+        ax.axvline(fc, color="#475569", linestyle=":", lw=1.0)
+        ax.annotate(
+            f"fc = {fc:.2f} Hz",
+            xy=(fc, -3.0),
+            xytext=(fc * 2.0, -50),
+            arrowprops=dict(arrowstyle="->", color="black", lw=1.0),
+            fontsize=7.5,
+            fontweight="bold",
+            bbox=dict(boxstyle="square,pad=0.3", facecolor="white", edgecolor="#94A3B8", lw=0.8)
+        )
+
+        ax.set_xlim(1, 100000)
+        ax.set_ylim(-85, 25)
+        ax.set_yticks([20, 0, -20, -40, -60, -80])
+        ax.set_xlabel("Frequency (Hz)", fontsize=8)
+        ax.set_ylabel("Magnitude (dB)", fontsize=8)
+        ax.grid(True, which="both", linestyle=":", alpha=0.5)
+        ax.legend(loc="upper right", fontsize=7.2, framealpha=0.9)
+
+    elif circuit_type == "voltage_divider":
+        r1 = params.get("R1", 10000.0)
+        r2 = params.get("R2", 5000.0)
+        vin = params.get("Vin", 10.0)
+        vout_nom = vin * (r2 / (r1 + r2))
+        vout_fault = vout_nom * 0.7 if is_faulty else vout_nom
+        t = np.linspace(0, 0.002, 100)
+
+        ax.plot(t * 1e3, np.full_like(t, vout_nom), color="#2563EB", lw=1.8, label=f"Expected Vout = {vout_nom:.2f}V")
+        if is_faulty:
+            ax.plot(t * 1e3, np.full_like(t, vout_fault), color="#DC2626", lw=1.5, ls="--", label="Uploaded Circuit (Drift / Fault)")
+        ax.set_ylim(0, vin + 1)
+        ax.set_xlabel("Time (ms)", fontsize=8)
+        ax.set_ylabel("Voltage (V)", fontsize=8)
+        ax.grid(True, linestyle=":", alpha=0.5)
+        ax.legend(loc="upper right", fontsize=7.2)
+
+    elif circuit_type == "rl_high_pass":
+        f = np.logspace(0, 5, 300)
+        r = params.get("R", 1000.0)
+        l = params.get("L", 0.01)
+        fc = r / (2.0 * np.pi * l)
+        xl = 2 * np.pi * f * l
+        h = (1j * xl) / (r + 1j * xl)
+        mag_nom = 20 * np.log10(np.abs(h))
+        mag_fault = np.full_like(f, -60.0) if is_faulty else mag_nom
+
+        ax.semilogx(f, mag_nom, color="#2563EB", lw=1.8, label="Expected (RL High-Pass)")
+        if is_faulty:
+            ax.semilogx(f, mag_fault, color="#DC2626", lw=1.5, ls="--", label="Uploaded Faulty Circuit (Shorted)")
+        ax.axvline(fc, color="#475569", linestyle=":", lw=1.0)
+        ax.annotate(
+            f"fc = {fc/1000:.1f} kHz",
+            xy=(fc, -3.0),
+            xytext=(fc * 0.15, -45),
+            arrowprops=dict(arrowstyle="->", color="black", lw=1.0),
+            fontsize=7.5,
+            fontweight="bold",
+            bbox=dict(boxstyle="square,pad=0.3", facecolor="white", edgecolor="#94A3B8", lw=0.8)
+        )
+        ax.set_xlim(1, 100000)
+        ax.set_ylim(-85, 25)
+        ax.set_yticks([20, 0, -20, -40, -60, -80])
+        ax.set_xlabel("Frequency (Hz)", fontsize=8)
+        ax.set_ylabel("Magnitude (dB)", fontsize=8)
+        ax.grid(True, which="both", linestyle=":", alpha=0.5)
+        ax.legend(loc="upper right", fontsize=7.2)
+
+    else: # rlc_band_pass
+        f = np.logspace(0, 5, 300)
+        r = params.get("R", 1000.0)
+        l = params.get("L", 0.01)
+        c = params.get("C", 100e-9)
+        f0 = 1.0 / (2.0 * np.pi * np.sqrt(l * c))
+        w = 2 * np.pi * f
+        z_tank = 1.0 / (1j * w * c + 1.0 / (1j * w * l + 1e-9))
+        h = z_tank / (r + z_tank)
+        mag_nom = 20 * np.log10(np.maximum(np.abs(h), 1e-4))
+        mag_fault = mag_nom - 15.0 if is_faulty else mag_nom
+
+        ax.semilogx(f, mag_nom, color="#2563EB", lw=1.8, label="Expected (RLC Band-Pass)")
+        if is_faulty:
+            ax.semilogx(f, mag_fault, color="#DC2626", lw=1.5, ls="--", label="Uploaded Faulty Circuit (Degraded)")
+        ax.axvline(f0, color="#475569", linestyle=":", lw=1.0)
+        ax.annotate(
+            f"f0 = {f0/1000:.2f} kHz",
+            xy=(f0, 0.0),
+            xytext=(f0 * 2.0, -45),
+            arrowprops=dict(arrowstyle="->", color="black", lw=1.0),
+            fontsize=7.5,
+            fontweight="bold",
+            bbox=dict(boxstyle="square,pad=0.3", facecolor="white", edgecolor="#94A3B8", lw=0.8)
+        )
+        ax.set_xlim(1, 100000)
+        ax.set_ylim(-85, 25)
+        ax.set_yticks([20, 0, -20, -40, -60, -80])
+        ax.set_xlabel("Frequency (Hz)", fontsize=8)
+        ax.set_ylabel("Magnitude (dB)", fontsize=8)
+        ax.grid(True, which="both", linestyle=":", alpha=0.5)
+        ax.legend(loc="upper right", fontsize=7.2)
+
+    fig.tight_layout()
+    fig.savefig(out_path, bbox_inches="tight")
+    plt.close(fig)
+
+

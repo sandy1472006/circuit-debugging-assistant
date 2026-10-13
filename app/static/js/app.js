@@ -506,7 +506,7 @@ function acceptCorrection(component, correctedVal) {
 
 function downloadDiagnosticPDF() {
   if (!AppState.currentSessionId) return;
-  window.open(`/api/reports/${AppState.currentSessionId}/pdf`, '_blank');
+  window.open(`/api/reports/${AppState.currentSessionId}/pdf?t=${Date.now()}`, '_blank');
 }
 
 function exportSPICEFile() {
@@ -637,7 +637,7 @@ async function loadDashboardRecent() {
           ${badgeHtml}
         </td>
         <td style="text-align:right;">
-          <a href="/api/reports/${item.id}/pdf" target="_blank" class="btn-view-report">
+          <a href="/api/reports/${item.id}/pdf?t=${Date.now()}" target="_blank" class="btn-view-report">
             View Report
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -767,7 +767,7 @@ async function loadReportsHistory() {
         <td>${d}</td>
         <td><span class="badge badge-passed">${item.report_summary || 'Completed'}</span></td>
         <td style="text-align:right;">
-          <a href="/api/reports/${item.id}/pdf" target="_blank" class="btn btn-secondary btn-sm">Download PDF</a>
+          <a href="/api/reports/${item.id}/pdf?t=${Date.now()}" target="_blank" class="btn btn-secondary btn-sm">Download PDF</a>
         </td>
       `;
       tbody.appendChild(tr);

@@ -34,7 +34,12 @@ async def download_pdf_report(session_id: str):
     return FileResponse(
         path=str(pdf_path),
         filename=pdf_filename,
-        media_type="application/pdf"
+        media_type="application/pdf",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
     )
 
 
