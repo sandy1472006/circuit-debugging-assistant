@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing and environments
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+.env
+venv/
+env/
+ENV/
+
+# Temporary upload and generated plot files (retain directories via .gitkeep)
+data/uploads/*
+!data/uploads/.gitkeep
+data/reports/plots/*
+!data/reports/plots/.gitkeep
+
+# IDE configs
+.vscode/
+.idea/
+*.swp
+*.swo
