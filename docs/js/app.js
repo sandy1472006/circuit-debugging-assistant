@@ -180,12 +180,16 @@ function clearDashboardFileSelection() {
   if (bar) bar.style.display = 'none';
   if (fileInput) fileInput.value = '';
 }
+window.clearDashboardFileSelection = clearDashboardFileSelection;
+window.clearSelectedFile = clearDashboardFileSelection;
 
 function proceedFromDashboard() {
   if (!AppState.selectedFile) return;
   startNewAnalysis();
   uploadAndInspectFile(AppState.selectedFile);
 }
+window.proceedFromDashboard = proceedFromDashboard;
+window.proceedFromDashboardUpload = proceedFromDashboard;
 
 // =========================================================================
 // STAGE 1: UPLOAD & PARAMETER INSPECTION
@@ -968,20 +972,32 @@ async function loadDashboardRecent() {
 
 // Technical Assistant Chat Drawer
 function toggleAssistantDrawer() {
-  const drawer = document.getElementById('technical-assistant-drawer');
+  const drawer = document.getElementById('assistant-drawer') || document.getElementById('technical-assistant-drawer');
   if (drawer) drawer.classList.toggle('open');
 }
+window.toggleAssistantDrawer = toggleAssistantDrawer;
 
 function closeAssistantDrawer() {
-  const drawer = document.getElementById('technical-assistant-drawer');
+  const drawer = document.getElementById('assistant-drawer') || document.getElementById('technical-assistant-drawer');
   if (drawer) drawer.classList.remove('open');
 }
+window.closeAssistantDrawer = closeAssistantDrawer;
+
+function askAssistantQuick(text) {
+  const drawer = document.getElementById('assistant-drawer') || document.getElementById('technical-assistant-drawer');
+  if (drawer && !drawer.classList.contains('open')) {
+    drawer.classList.add('open');
+  }
+  sendAssistantPrompt(text);
+}
+window.askAssistantQuick = askAssistantQuick;
 
 function sendAssistantPrompt(text) {
   const input = document.getElementById('assistant-input');
   if (input) input.value = text;
   sendAssistantQuery();
 }
+window.sendAssistantPrompt = sendAssistantPrompt;
 
 async function sendAssistantQuery() {
   const input = document.getElementById('assistant-input');
