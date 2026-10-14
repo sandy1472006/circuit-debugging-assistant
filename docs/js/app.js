@@ -11,7 +11,7 @@ const AppState = {
   selectedFile: null,
   currentSessionId: null,
   currentCircuitType: 'rc_low_pass',
-  currentParameters: {},
+  currentParameters: { Vin: 5.0, R: 10000.0, C: 100e-9 },
   currentAnalysisData: null,
   uploadedImageUrl: null,
   zoomLevels: { 'left-img': 1.0, 'right-img': 1.0 }
@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initDashboardUpload();
   initStage1Upload();
+  rebuildStage1ComponentTable();
   loadDashboardRecent();
   initCircuitLibrary();
 });
@@ -119,6 +120,7 @@ function startNewAnalysis() {
   if (navAnalysis) navAnalysis.classList.add('active');
   showView('view-analysis');
   goToStage(1);
+  rebuildStage1ComponentTable();
 }
 
 function goToStage(stageNum) {
@@ -184,9 +186,10 @@ window.clearDashboardFileSelection = clearDashboardFileSelection;
 window.clearSelectedFile = clearDashboardFileSelection;
 
 function proceedFromDashboard() {
-  if (!AppState.selectedFile) return;
   startNewAnalysis();
-  uploadAndInspectFile(AppState.selectedFile);
+  if (AppState.selectedFile) {
+    uploadAndInspectFile(AppState.selectedFile);
+  }
 }
 window.proceedFromDashboard = proceedFromDashboard;
 window.proceedFromDashboardUpload = proceedFromDashboard;
@@ -195,20 +198,25 @@ window.proceedFromDashboardUpload = proceedFromDashboard;
 // STAGE 1: UPLOAD & PARAMETER INSPECTION
 // =========================================================================
 function initStage1Upload() {
-  const dropzone = document.getElementById('stage1-dropzone');
+  const dropzone = document.getElementById('stage1-image-viewport') || document.getElementById('stage1-dropzone');
   const fileInput = document.getElementById('stage1-file-input');
 
   if (dropzone && fileInput) {
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropzone.classList.add('dragover');
+      dropzone.style.borderColor = '#2563EB';
+      dropzone.style.background = '#EFF6FF';
     });
 
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.style.borderColor = '#CBD5E1';
+      dropzone.style.background = '#FAFAFA';
+    });
 
     dropzone.addEventListener('drop', (e) => {
       e.preventDefault();
-      dropzone.classList.remove('dragover');
+      dropzone.style.borderColor = '#CBD5E1';
+      dropzone.style.background = '#FAFAFA';
       if (e.dataTransfer.files.length > 0) {
         uploadAndInspectFile(e.dataTransfer.files[0]);
       }
@@ -243,7 +251,8 @@ async function uploadAndInspectFile(file) {
   AppState.selectedFile = file;
   const viewport = document.getElementById('stage1-image-viewport');
   if (viewport) {
-    viewport.innerHTML = `<span style="color:var(--text-secondary);">Analyzing schematic image...</span>`;
+    viewport.style.border = '1px solid #E2E8F0';
+    viewport.innerHTML = `<span style="color:var(--text-secondary); font-size:13px;">Analyzing schematic image...</span>`;
   }
 
   if (!isStaticHost) {
@@ -263,7 +272,17 @@ async function uploadAndInspectFile(file) {
         AppState.uploadedImageUrl = data.image_url;
 
         if (viewport) {
-          viewport.innerHTML = `<img src="${data.image_url}" style="max-width:100%; max-height:270px; object-fit:contain;" alt="Uploaded Schematic" />`;
+          viewport.style.border = '1px solid #E2E8F0';
+          viewport.style.cursor = 'default';
+          viewport.innerHTML = `
+            <div style="position:relative; width:100%; height:100%; min-height:260px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px;">
+              <img src="${data.image_url}" style="max-width:100%; max-height:230px; object-fit:contain; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.08);" alt="Uploaded Schematic" />
+              <div style="margin-top:10px; font-size:12px; color:#334155; display:flex; align-items:center; gap:10px;">
+                <span><strong>File:</strong> ${file.name}</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); document.getElementById('stage1-file-input').click();" style="padding:2px 10px; font-size:11px;">Change Image</button>
+              </div>
+            </div>
+          `;
         }
         const typeSelect = document.getElementById('stage1-circuit-type');
         if (typeSelect) typeSelect.value = data.circuit_type;
@@ -298,7 +317,17 @@ async function uploadAndInspectFile(file) {
     }
 
     if (viewport) {
-      viewport.innerHTML = `<img src="${dataUrl}" style="max-width:100%; max-height:270px; object-fit:contain;" alt="Uploaded Schematic" />`;
+      viewport.style.border = '1px solid #E2E8F0';
+      viewport.style.cursor = 'default';
+      viewport.innerHTML = `
+        <div style="position:relative; width:100%; height:100%; min-height:260px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px;">
+          <img src="${dataUrl}" style="max-width:100%; max-height:230px; object-fit:contain; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.08);" alt="Uploaded Schematic" />
+          <div style="margin-top:10px; font-size:12px; color:#334155; display:flex; align-items:center; gap:10px;">
+            <span><strong>File:</strong> ${file.name}</span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); document.getElementById('stage1-file-input').click();" style="padding:2px 10px; font-size:11px;">Change Image</button>
+          </div>
+        </div>
+      `;
     }
     const typeSelect = document.getElementById('stage1-circuit-type');
     if (typeSelect) typeSelect.value = AppState.currentCircuitType;

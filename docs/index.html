@@ -293,15 +293,32 @@
         <div id="stage-1-container">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
             
-            <!-- Left: Uploaded Schematic Preview -->
+            <!-- Left: Uploaded Schematic Preview & Upload Zone -->
             <div class="eng-card">
               <div class="card-title">
                 <span>Uploaded Circuit Image</span>
-                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('stage1-file-input').click();">Replace Image</button>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('stage1-file-input').click();">Browse & Upload Image</button>
                 <input type="file" id="stage1-file-input" accept=".png,.jpg,.jpeg,.pdf" style="display: none;" />
               </div>
-              <div id="stage1-image-viewport" style="background:#FAFAFA; border:1px solid #E2E8F0; border-radius:4px; min-height:280px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                <span style="color:var(--text-muted);">No image uploaded yet.</span>
+              <div id="stage1-image-viewport" style="background:#FAFAFA; border:2px dashed #CBD5E1; border-radius:6px; min-height:280px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; cursor:pointer;" onclick="if(!AppState.uploadedImageUrl) document.getElementById('stage1-file-input').click();">
+                <div id="stage1-dropzone-content" style="text-align:center; padding:30px 20px;">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8" style="margin-bottom:12px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <div style="font-weight:600; font-size:14px; color:var(--text-main); margin-bottom:6px;">Upload Circuit Schematic</div>
+                  <div style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">Drag & drop your circuit image here, or browse from your computer</div>
+                  <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); document.getElementById('stage1-file-input').click();" style="padding:7px 18px; font-weight:600;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:middle;">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Browse & Upload File
+                  </button>
+                  <div style="font-size:11px; color:#94A3B8; margin-top:10px;">Supports PNG, JPG, JPEG, PDF (Schematics & circuit drawings)</div>
+                </div>
               </div>
             </div>
 
